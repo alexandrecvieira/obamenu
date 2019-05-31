@@ -3,18 +3,40 @@
 
 # Version 1.1.7 
 # ---- config ---
-applications_dirs = ("/usr/share/applications", )
+import commands, glob, os
+
+username = commands.getoutput("echo $(whoami)")
+applications_dirs = ("/usr/share/applications","/home/" + username + "/.local/share/applications" )
 image_dir_base = "/usr/share" # without "pixmaps" -/usr/local/share in FreeBSD, /usr/share on linux
-icon_Theme = "Humanity"
+theme_name = commands.getoutput("sed -n '/gtk-icon-theme-name/p' ~/.gtkrc-2.0")
+icon_Theme = theme_name.split('=')[1].replace("\"","")
+alternate_icon_Theme = "Adwaita"
 image_cat_prefix = "applications-"  # if empty will create no icon text only menu
 application_groups = ("Office",  "Development",  "Graphics", "Internet",  "Games", "System",  "Multimedia",  "Utilities",  "Settings")
 group_aliases = {"Audio":"Multimedia","AudioVideo":"Multimedia","Network":"Internet","Game":"Games", "Utility":"Utilities", "GTK":"",  "GNOME":""}
-ignoreList = ("evince-previewer", "Ted",  "wingide3.2", "python3.4", "feh","xfce4-power-manager-settings" )
-terminal_string = "evte -e"         # your favourites terminal exec string
+ignoreList = ("evince-previewer", "Ted",  "wingide3.2", "python3.4", "feh","xfce4-power-manager-settings", "org.gnome.Evince-previewer", "rhythmbox-device")
+terminal_string = "xterm -e"         # your favourites terminal exec string
 simpleOBheader = False  # print full xml style OB header
 # --- End of user config ---
  
-import glob
+def getDir(path):  
+    for file in os.listdir(path):
+        if os.path.isdir(os.path.join(path, file)):
+            yield file
+
+def getIconPath(theme_path, icon_name):
+    for dir in getDir(theme_path):  
+        for subdir in getDir(theme_path + "/" + dir):
+            # if(subdir == icon_type):
+            tmp = theme_path + "/" + dir + "/" + subdir + "/" + icon_name + ".*"
+            tmp = glob.glob(tmp)
+            if len(tmp) > 0:
+                # search for icon size
+                if (tmp[0].find("scalable") > 0) or (tmp[0].find("512") > 0)\
+                   or (tmp[0].find("256") > 0) or (tmp[0].find("128") > 0)\
+                   or (tmp[0].find("64") > 0) or (tmp[0].find("48") > 0)\
+                   or (tmp[0].find("32") > 0):
+                    return tmp[0]
 
 class dtItem(object):
     def __init__(self, fName):
@@ -42,6 +64,7 @@ class dtItem(object):
         self.Icon = ""
         if image_cat_prefix == "":
             return
+        # search on pixmaps
         image_dir = image_dir_base + "/pixmaps/"
         di = data.strip()
         if len(di) < 3:
@@ -56,6 +79,25 @@ class dtItem(object):
         tmp = glob.glob(tmp)
         if len(tmp) > 0:
             self.Icon = tmp[0]
+            return
+        # search on theme path
+        tmp = image_dir_base + "/icons/" + icon_Theme
+        tmp = getIconPath(tmp, di)
+        if tmp != None:
+            self.Icon = tmp
+            return
+        # search on hicolor theme path
+        tmp = image_dir_base + "/icons/hicolor"
+        tmp = getIconPath(tmp, di)
+        if tmp != None:
+            self.Icon = tmp
+            return
+        # search on alternate theme path
+        tmp = image_dir_base + "/icons/" + alternate_icon_Theme
+        tmp = getIconPath(tmp, di)
+        if tmp != None:
+            self.Icon = tmp
+            return
         return
 
     def addTerminal(self, data):
@@ -71,11 +113,22 @@ class dtItem(object):
         self.Categories = data
 
 def getCatIcon(cat):
-    iconDir = image_dir_base + "/icons/" + icon_Theme + "/categories/24/"
     cat = image_cat_prefix + cat.lower()
-    tmp = glob.glob(iconDir + cat + ".*")
-    if len(tmp) > 0:
-        return tmp[0]
+    # search on theme path
+    tmp = image_dir_base + "/icons/" + icon_Theme
+    tmp = getIconPath(tmp, cat)
+    if tmp != None:
+        return tmp
+    # search on hicolor theme path
+    tmp = image_dir_base + "/icons/hicolor"
+    tmp = getIconPath(tmp, cat)
+    if tmp != None:
+        return tmp
+    # search on alternate theme path
+    tmp = image_dir_base + "/icons/" + alternate_icon_Theme
+    tmp = getIconPath(tmp, cat)
+    if tmp != None:
+        return tmp
     return ""
 
 def xescape(s):
@@ -193,6 +246,10 @@ if __name__ == "__main__":
         catStr = "<menu id=\"openbox-%s\" label=\"%s\" " % (application_groups[ag], application_groups[ag])
         tmp = getCatIcon(application_groups[ag])
         if tmp != "":
+            catStr += "icon=\"%s\"" % tmp
+        else:
+            # set default categorie icon
+            tmp = getCatIcon("System")
             catStr += "icon=\"%s\"" % tmp
         print catStr,  ">"
         for app in catList:
