@@ -15,9 +15,11 @@ Author: [rmoe](http://rmoe.anukis.de/obamenu.html)
 
 Refactored by [alexandrecvieira](https://alexandrecvieira.github.io) to add the changes below
 
+Note: The alternative theme setting may be required when using modern themes like Ubuntu Yaru. Some modern themes do not have the traditional Gnome category icons (eg applications-accessories.png)
+
 ## CHANGELOG
 #### Added
 - Automatic theme setting
-- Alternative icons theme setting
-- Automatic application icons search
-- Automatic search of categories icons
+- Alternative icon theme setting
+- Automatic application icon search
+- Automatic search of categorie icon

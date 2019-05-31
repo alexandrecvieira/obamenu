@@ -5,12 +5,12 @@
 # ---- config ---
 import commands, glob, os
 
-username = commands.getoutput("echo $(whoami)")
+username = commands.getoutput("echo $(whoami)") # get current user
 applications_dirs = ("/usr/share/applications","/home/" + username + "/.local/share/applications" )
 image_dir_base = "/usr/share" # without "pixmaps" -/usr/local/share in FreeBSD, /usr/share on linux
 theme_name = commands.getoutput("sed -n '/gtk-icon-theme-name/p' ~/.gtkrc-2.0")
 icon_Theme = theme_name.split('=')[1].replace("\"","")
-alternate_icon_Theme = "Adwaita"
+alternate_icon_Theme = "Adwaita" # alternate theme or None
 image_cat_prefix = "applications-"  # if empty will create no icon text only menu
 application_groups = ("Office",  "Development",  "Graphics", "Internet",  "Games", "System",  "Multimedia",  "Utilities",  "Settings")
 group_aliases = {"Audio":"Multimedia","AudioVideo":"Multimedia","Network":"Internet","Game":"Games", "Utility":"Utilities", "GTK":"",  "GNOME":""}
@@ -93,11 +93,12 @@ class dtItem(object):
             self.Icon = tmp
             return
         # search on alternate theme path
-        tmp = image_dir_base + "/icons/" + alternate_icon_Theme
-        tmp = getIconPath(tmp, di)
-        if tmp != None:
-            self.Icon = tmp
-            return
+        if alternate_icon_Theme != None:
+            tmp = image_dir_base + "/icons/" + alternate_icon_Theme
+            tmp = getIconPath(tmp, di)
+            if tmp != None:
+                self.Icon = tmp
+                return
         return
 
     def addTerminal(self, data):
@@ -125,10 +126,11 @@ def getCatIcon(cat):
     if tmp != None:
         return tmp
     # search on alternate theme path
-    tmp = image_dir_base + "/icons/" + alternate_icon_Theme
-    tmp = getIconPath(tmp, cat)
-    if tmp != None:
-        return tmp
+    if alternate_icon_Theme != None:
+        tmp = image_dir_base + "/icons/" + alternate_icon_Theme
+        tmp = getIconPath(tmp, cat)
+        if tmp != None:
+            return tmp
     return ""
 
 def xescape(s):
