@@ -23,5 +23,6 @@ Note: The alternative theme setting may be required when using modern themes lik
 - Alternative icon theme setting
 - Automatic application icon search
 - Automatic search of categorie icon
+- Default categorie icon 
 
 <img src="http://alexandrecvieira.droppages.com/images/obamenu/obamenu.png">
